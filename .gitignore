@@ -1,0 +1,34 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+api.exe
+
+# Go
+vendor/
+*.test
+coverage.txt
+
+# Frontend
+node_modules/
+.next/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+
+# Build
+medstock.exe
