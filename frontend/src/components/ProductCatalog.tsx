@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Package, DollarSign, Boxes, AlertTriangle, TrendingUp, RefreshCw } from 'lucide-react';
+import { Package, DollarSign, Boxes, AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -19,6 +19,8 @@ interface Stats {
   low_stock_count: number;
 }
 
+const API_URL = 'https://medstock-eewp.onrender.com';
+
 export function ProductCatalog({ compact = false }: { compact?: boolean }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -27,7 +29,7 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
 
   const fetchData = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/v1/products', {
+      const response = await fetch(`${API_URL}/api/v1/products`, {
         headers: { 'Authorization': 'Bearer test-api-key-123' }
       });
 
@@ -36,7 +38,6 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
         setProducts(result.products || []);
         setError(null);
 
-        // Calculate stats from products
         let totalValue = 0;
         let totalQuantity = 0;
         let lowStockCount = 0;
@@ -59,32 +60,29 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
         setIsLoading(false);
       }
     } catch (e) {
-      setError('Failed to load products. Ensure API is running.');
+      setError('Failed to load. API offline.');
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
     fetchData();
-
-    // Refresh every 3 seconds
     const interval = setInterval(fetchData, 3000);
-
     return () => clearInterval(interval);
   }, [fetchData]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-500">Loading products...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-red-600 border-t-transparent"></div>
+        <span className="ml-3 text-zinc-500 font-medium">Loading products...</span>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2">
+      <div className="bg-zinc-900 text-red-400 p-4 rounded-xl border border-zinc-800 flex items-center gap-2 font-medium">
         <AlertTriangle className="w-5 h-5" />
         {error}
       </div>
@@ -92,21 +90,21 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800">
       {/* Header with Stats */}
       {!compact && (
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-red-900 to-red-950 p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold flex items-center gap-2">
+              <h2 className="text-2xl font-black flex items-center gap-2 text-white">
                 <Package className="w-6 h-6" />
                 Product Catalog
               </h2>
-              <p className="text-blue-100 mt-1">Real-time inventory tracking</p>
+              <p className="text-red-300/60 text-sm mt-1 font-medium">Real-time inventory tracking</p>
             </div>
             <button
               onClick={fetchData}
-              className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all text-sm font-bold text-white border border-white/20"
             >
               <RefreshCw className="w-4 h-4" />
               Refresh
@@ -115,33 +113,33 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
 
           {stats && (
             <div className="grid grid-cols-4 gap-4">
-              <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                <div className="flex items-center gap-2 text-blue-100 text-sm">
+              <div className="bg-black/30 backdrop-blur rounded-xl p-4 border border-red-800/50">
+                <div className="flex items-center gap-2 text-red-300/60 text-xs font-bold uppercase tracking-wider mb-2">
                   <Package className="w-4 h-4" />
                   Total Products
                 </div>
-                <div className="text-3xl font-bold mt-1">{stats.total_products}</div>
+                <div className="text-3xl font-black text-white font-mono">{stats.total_products}</div>
               </div>
-              <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                <div className="flex items-center gap-2 text-blue-100 text-sm">
+              <div className="bg-black/30 backdrop-blur rounded-xl p-4 border border-red-800/50">
+                <div className="flex items-center gap-2 text-red-300/60 text-xs font-bold uppercase tracking-wider mb-2">
                   <Boxes className="w-4 h-4" />
                   Total Units
                 </div>
-                <div className="text-3xl font-bold mt-1">{stats.total_quantity.toLocaleString()}</div>
+                <div className="text-3xl font-black text-white font-mono">{stats.total_quantity.toLocaleString()}</div>
               </div>
-              <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                <div className="flex items-center gap-2 text-blue-100 text-sm">
+              <div className="bg-black/30 backdrop-blur rounded-xl p-4 border border-red-800/50">
+                <div className="flex items-center gap-2 text-red-300/60 text-xs font-bold uppercase tracking-wider mb-2">
                   <DollarSign className="w-4 h-4" />
                   Inventory Value
                 </div>
-                <div className="text-3xl font-bold mt-1">${stats.total_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                <div className="text-3xl font-black text-white font-mono">${stats.total_value.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
               </div>
-              <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                <div className="flex items-center gap-2 text-blue-100 text-sm">
+              <div className="bg-black/30 backdrop-blur rounded-xl p-4 border border-red-800/50">
+                <div className="flex items-center gap-2 text-red-300/60 text-xs font-bold uppercase tracking-wider mb-2">
                   <AlertTriangle className="w-4 h-4" />
                   Low Stock
                 </div>
-                <div className="text-3xl font-bold mt-1">{stats.low_stock_count}</div>
+                <div className="text-3xl font-black text-amber-400 font-mono">{stats.low_stock_count}</div>
               </div>
             </div>
           )}
@@ -150,17 +148,17 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
 
       {/* Compact Header */}
       {compact && (
-        <div className="p-6 border-b bg-gradient-to-r from-gray-50 to-slate-50">
+        <div className="p-6 border-b border-zinc-800 bg-zinc-950">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold flex items-center gap-2 text-gray-800">
-              <Package className="w-5 h-5 text-blue-600" />
+            <h2 className="text-xl font-black flex items-center gap-2 text-white">
+              <Package className="w-5 h-5 text-red-500" />
               Recent Products
             </h2>
-            <div className="flex items-center gap-4 text-sm">
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
+            <div className="flex items-center gap-4 text-xs">
+              <span className="px-3 py-1 bg-red-600/20 text-red-400 rounded-full font-bold border border-red-600/30">
                 {stats?.total_products || 0} items
               </span>
-              <span className="text-gray-500">
+              <span className="text-zinc-500 font-mono">
                 ${stats?.total_value?.toLocaleString(undefined, { minimumFractionDigits: 2 }) || '0.00'}
               </span>
             </div>
@@ -172,14 +170,14 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
       <div className={compact ? "max-h-[400px] overflow-y-auto" : "max-h-[500px] overflow-y-auto"}>
         {products.length === 0 ? (
           <div className="p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Boxes className="w-8 h-8 text-gray-400" />
+            <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Boxes className="w-8 h-8 text-zinc-600" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No products yet</h3>
-            <p className="text-gray-500">Upload inventory to see products here</p>
+            <h3 className="text-lg font-bold text-zinc-300 mb-2">No products yet</h3>
+            <p className="text-zinc-600 font-medium">Upload inventory to see products here</p>
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-zinc-800">
             {products.map((product, index) => {
               const itemValue = product.quantity * product.unit_price;
               const isLowStock = product.quantity < 50;
@@ -187,21 +185,21 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
               return (
                 <div
                   key={product.id || product.sku}
-                  className="p-4 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all cursor-pointer group"
+                  className="p-4 hover:bg-zinc-800/50 transition-all cursor-pointer group"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
-                        <Package className="w-6 h-6 text-blue-600" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-red-900/50 to-red-950/50 rounded-xl flex items-center justify-center border border-red-800/30">
+                        <Package className="w-6 h-6 text-red-500" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                        <h3 className="font-bold text-white group-hover:text-red-400 transition-colors">
                           {product.name}
                         </h3>
-                        <div className="flex items-center gap-3 mt-1 text-sm">
-                          <span className="bg-gray-100 px-2 py-0.5 rounded font-mono text-xs">{product.sku}</span>
+                        <div className="flex items-center gap-3 mt-1 text-xs">
+                          <span className="bg-zinc-800 px-2 py-0.5 rounded font-mono text-zinc-400 border border-zinc-700">{product.sku}</span>
                           {product.category && (
-                            <span className="text-gray-500">{product.category}</span>
+                            <span className="text-zinc-500 font-medium">{product.category}</span>
                           )}
                         </div>
                       </div>
@@ -209,32 +207,32 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
 
                     <div className="flex items-center gap-6 text-right">
                       <div>
-                        <div className={`flex items-center gap-1 ${isLowStock ? 'text-amber-600' : 'text-gray-600'}`}>
+                        <div className={`flex items-center gap-1 font-bold font-mono ${isLowStock ? 'text-amber-400' : 'text-zinc-300'}`}>
                           <Boxes className="w-4 h-4" />
-                          <span className="font-semibold">{product.quantity.toLocaleString()}</span>
+                          {product.quantity.toLocaleString()}
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">Quantity</div>
+                        <div className="text-xs text-zinc-600 mt-0.5 uppercase tracking-wider">Qty</div>
                       </div>
                       <div>
-                        <div className="flex items-center gap-1 text-green-600">
+                        <div className="flex items-center gap-1 text-red-400 font-bold font-mono">
                           <DollarSign className="w-4 h-4" />
-                          <span className="font-semibold">{product.unit_price.toFixed(2)}</span>
+                          {product.unit_price.toFixed(2)}
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">Unit Price</div>
+                        <div className="text-xs text-zinc-600 mt-0.5 uppercase tracking-wider">Price</div>
                       </div>
                       <div>
-                        <div className="font-bold text-gray-900">
+                        <div className="font-black text-white font-mono">
                           ${itemValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
-                        <div className="text-xs text-gray-400 mt-0.5">Total Value</div>
+                        <div className="text-xs text-zinc-600 mt-0.5 uppercase tracking-wider">Value</div>
                       </div>
                     </div>
                   </div>
 
                   {isLowStock && (
-                    <div className="mt-3 flex items-center gap-1 text-amber-600 text-xs bg-amber-50 px-2 py-1 rounded-lg w-fit">
+                    <div className="mt-3 flex items-center gap-1 text-amber-400 text-xs bg-amber-400/10 px-2 py-1 rounded-lg w-fit border border-amber-400/20 font-bold">
                       <AlertTriangle className="w-3 h-3" />
-                      Low stock alert - Reorder soon
+                      Low stock alert ⚠️
                     </div>
                   )}
                 </div>
@@ -246,17 +244,17 @@ export function ProductCatalog({ compact = false }: { compact?: boolean }) {
 
       {/* Footer */}
       {!compact && products.length > 0 && (
-        <div className="p-4 border-t bg-gray-50 flex justify-between items-center">
-          <span className="text-sm text-gray-500">
+        <div className="p-4 border-t border-zinc-800 bg-zinc-950 flex justify-between items-center">
+          <span className="text-sm text-zinc-600 font-medium">
             Showing {products.length} of {stats?.total_products || 0} products
           </span>
           <div className="flex items-center gap-2">
-            <button disabled className="px-4 py-2 border rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">
-              Previous
+            <button disabled className="px-4 py-2 border border-zinc-800 rounded-lg bg-zinc-900 text-zinc-600 font-bold text-sm cursor-not-allowed">
+              ← Prev
             </button>
-            <span className="px-4 py-2">Page 1 of 1</span>
-            <button disabled className="px-4 py-2 border rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed">
-              Next
+            <span className="px-4 py-2 text-zinc-500 font-mono text-sm">Page 1/1</span>
+            <button disabled className="px-4 py-2 border border-zinc-800 rounded-lg bg-zinc-900 text-zinc-600 font-bold text-sm cursor-not-allowed">
+              Next →
             </button>
           </div>
         </div>

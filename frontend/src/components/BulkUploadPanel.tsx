@@ -39,6 +39,8 @@ interface Stats {
   low_stock_count: number;
 }
 
+const API_URL = 'https://medstock-eewp.onrender.com';
+
 export function BulkUploadPanel() {
   const [items, setItems] = useState<BulkItemInput[]>([]);
   const [currentItem, setCurrentItem] = useState<BulkItemInput>({
@@ -55,14 +57,13 @@ export function BulkUploadPanel() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/v1/products', {
+      const response = await fetch(`${API_URL}/api/v1/products`, {
         headers: { 'Authorization': 'Bearer test-api-key-123' }
       });
       if (response.ok) {
         const result = await response.json();
         setRecentProducts(result.products?.slice(0, 5) || []);
 
-        // Calculate stats
         let totalValue = 0;
         let lowStockCount = 0;
         result.products?.forEach((p: Product) => {
@@ -83,7 +84,6 @@ export function BulkUploadPanel() {
 
   useEffect(() => {
     fetchProducts();
-
     const interval = setInterval(fetchProducts, 3000);
     return () => clearInterval(interval);
   }, [fetchProducts]);
@@ -120,7 +120,7 @@ export function BulkUploadPanel() {
     const idempotency_key = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/bulk-upload', {
+      const response = await fetch(`${API_URL}/api/v1/bulk-upload`, {
         method: 'POST',
         headers: {
           'Authorization': 'Bearer test-api-key-123',
@@ -136,7 +136,6 @@ export function BulkUploadPanel() {
       if (response.ok) {
         const result = await response.json();
         setUploadResult(result);
-        // Refresh products after upload
         setTimeout(fetchProducts, 500);
       } else {
         const error = await response.json();
@@ -153,9 +152,9 @@ export function BulkUploadPanel() {
     if (!uploadResult) return null;
     switch (uploadResult.status) {
       case 'completed':
-        return <CheckCircle2 className="w-6 h-6 text-green-500" />;
+        return <CheckCircle2 className="w-6 h-6 text-red-500" />;
       case 'failed':
-        return <AlertCircle className="w-6 h-6 text-red-500" />;
+        return <AlertCircle className="w-6 h-6 text-zinc-400" />;
       case 'partial_failure':
         return <AlertCircle className="w-6 h-6 text-amber-500" />;
       default:
@@ -168,55 +167,56 @@ export function BulkUploadPanel() {
   return (
     <div className="space-y-6">
       {/* Upload Form */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-          <h2 className="text-xl font-bold flex items-center gap-2">
+      <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-red-700 to-red-900 p-6">
+          <h2 className="text-xl font-black flex items-center gap-2 text-white">
             <Upload className="w-5 h-5" />
             Bulk Inventory Upload
           </h2>
-          <p className="text-indigo-100 text-sm mt-1">Add items and upload to sync inventory</p>
+          <p className="text-red-200 text-sm mt-1">Add items and upload to sync inventory</p>
         </div>
 
         <div className="p-6">
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">SKU *</label>
+              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">SKU *</label>
               <input
                 type="text"
                 value={currentItem.sku}
                 onChange={(e) => setCurrentItem({ ...currentItem, sku: e.target.value.toUpperCase() })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-white placeholder-zinc-500 font-mono"
                 placeholder="MED-001"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">Product Name *</label>
               <input
                 type="text"
                 value={currentItem.name}
                 onChange={(e) => setCurrentItem({ ...currentItem, name: e.target.value })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-white placeholder-zinc-500"
                 placeholder="Medical Device Name"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Quantity *</label>
+              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">Quantity *</label>
               <input
                 type="number"
                 value={currentItem.quantity || ''}
                 onChange={(e) => setCurrentItem({ ...currentItem, quantity: parseInt(e.target.value) || 0 })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-white placeholder-zinc-500 font-mono"
                 placeholder="0"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price ($) *</label>
+              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">Unit Price ($) *</label>
               <input
                 type="number"
                 step="0.01"
                 value={currentItem.unit_price || ''}
                 onChange={(e) => setCurrentItem({ ...currentItem, unit_price: parseFloat(e.target.value) || 0 })}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all text-white placeholder-zinc-500 font-mono"
                 placeholder="0.00"
               />
             </div>
@@ -225,7 +225,7 @@ export function BulkUploadPanel() {
           <button
             onClick={addItem}
             disabled={!canAddItem}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 disabled:bg-gray-100 disabled:text-gray-400 transition-all font-medium"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-zinc-800 text-red-400 rounded-xl hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 transition-all font-bold text-sm border border-zinc-700"
           >
             <Plus className="w-5 h-5" />
             Add Item to Queue
@@ -236,37 +236,37 @@ export function BulkUploadPanel() {
         {items.length > 0 && (
           <div className="px-6 pb-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-800">
+              <h3 className="font-bold text-zinc-300 text-sm uppercase tracking-wider">
                 Items to Upload
-                <span className="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full text-sm">{items.length}</span>
+                <span className="ml-2 px-2 py-0.5 bg-red-600/20 text-red-400 rounded text-xs font-mono">{items.length}</span>
               </h3>
               <button
                 onClick={clearAll}
-                className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1"
+                className="text-xs text-zinc-500 hover:text-red-400 flex items-center gap-1 font-medium"
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-3 h-3" />
                 Clear All
               </button>
             </div>
-            <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl">
+            <div className="max-h-48 overflow-y-auto border border-zinc-800 rounded-xl bg-zinc-950">
               {items.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-gray-50">
+                <div key={index} className="flex items-center justify-between p-3 border-b border-zinc-800 last:border-b-0 hover:bg-zinc-900">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                      <span className="text-xs font-bold text-indigo-600">{index + 1}</span>
+                    <div className="w-8 h-8 bg-red-600/20 rounded-lg flex items-center justify-center">
+                      <span className="text-xs font-black text-red-400 font-mono">{index + 1}</span>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-900">{item.sku}</span>
-                      <span className="text-gray-400 mx-2">-</span>
-                      <span className="text-gray-600">{item.name}</span>
+                      <span className="font-bold text-white font-mono text-sm">{item.sku}</span>
+                      <span className="text-zinc-600 mx-2">→</span>
+                      <span className="text-zinc-400">{item.name}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-500">Qty: {item.quantity}</span>
-                    <span className="text-sm text-green-600">${item.unit_price.toFixed(2)}</span>
+                    <span className="text-xs text-zinc-500 font-mono">Qty: {item.quantity}</span>
+                    <span className="text-sm text-red-400 font-bold">${item.unit_price.toFixed(2)}</span>
                     <button
                       onClick={() => removeItem(index)}
-                      className="text-gray-400 hover:text-red-500 p-1 rounded hover:bg-red-50 transition-colors"
+                      className="text-zinc-600 hover:text-red-400 p-1 rounded hover:bg-zinc-800 transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -282,7 +282,7 @@ export function BulkUploadPanel() {
           <button
             onClick={handleUpload}
             disabled={items.length === 0 || isUploading}
-            className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed transition-all font-semibold text-lg shadow-lg shadow-indigo-500/25"
+            className="w-full py-4 bg-gradient-to-r from-red-700 to-red-900 text-white rounded-xl hover:from-red-600 hover:to-red-800 disabled:from-zinc-700 disabled:to-zinc-800 disabled:cursor-not-allowed transition-all font-black text-lg shadow-lg shadow-red-900/50"
           >
             {isUploading ? (
               <span className="flex items-center justify-center gap-2">
@@ -290,7 +290,7 @@ export function BulkUploadPanel() {
                 Processing...
               </span>
             ) : (
-              `Upload ${items.length} Item${items.length !== 1 ? 's' : ''}`
+              `Upload ${items.length} Item${items.length !== 1 ? 's' : ''} ⚡`
             )}
           </button>
         </div>
@@ -298,32 +298,32 @@ export function BulkUploadPanel() {
         {/* Upload Result */}
         {uploadResult && (
           <div className="px-6 pb-6">
-            <div className="bg-gradient-to-r from-gray-50 to-slate-50 rounded-xl p-4 border border-gray-200">
+            <div className="bg-zinc-950 rounded-xl p-4 border border-zinc-800">
               <div className="flex items-center gap-3 mb-4">
                 {getStatusIcon()}
-                <span className="font-semibold capitalize text-gray-800">
+                <span className="font-black capitalize text-zinc-300 text-sm">
                   {uploadResult.status.replace(/_/g, ' ')}
                 </span>
                 {uploadResult.is_idempotent && (
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Idempotent</span>
+                  <span className="text-xs bg-zinc-800 text-zinc-500 px-2 py-0.5 rounded font-mono">Idempotent</span>
                 )}
               </div>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-white rounded-lg p-3 shadow-sm">
-                  <div className="text-2xl font-bold text-gray-900">{uploadResult.total_items}</div>
-                  <div className="text-xs text-gray-500">Total</div>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
+                  <div className="text-2xl font-black text-white font-mono">{uploadResult.total_items}</div>
+                  <div className="text-xs text-zinc-600 uppercase tracking-wider">Total</div>
                 </div>
-                <div className="bg-white rounded-lg p-3 shadow-sm">
-                  <div className="text-2xl font-bold text-green-600">{uploadResult.processed}</div>
-                  <div className="text-xs text-gray-500">Success</div>
+                <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
+                  <div className="text-2xl font-black text-red-500 font-mono">{uploadResult.processed}</div>
+                  <div className="text-xs text-zinc-600 uppercase tracking-wider">Success</div>
                 </div>
-                <div className="bg-white rounded-lg p-3 shadow-sm">
-                  <div className="text-2xl font-bold text-red-600">{uploadResult.failed}</div>
-                  <div className="text-xs text-gray-500">Failed</div>
+                <div className="bg-zinc-900 rounded-lg p-3 border border-zinc-800">
+                  <div className="text-2xl font-black text-zinc-400 font-mono">{uploadResult.failed}</div>
+                  <div className="text-xs text-zinc-600 uppercase tracking-wider">Failed</div>
                 </div>
               </div>
-              <div className="mt-3 text-xs text-gray-500 text-center">
-                Processed in {uploadResult.duration_ms}ms
+              <div className="mt-3 text-xs text-zinc-600 text-center font-mono">
+                Processed in {uploadResult.duration_ms}ms ⚡
               </div>
             </div>
           </div>
@@ -332,31 +332,31 @@ export function BulkUploadPanel() {
 
       {/* Quick Stats */}
       {stats && stats.total_products > 0 && (
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800">Inventory Summary</h3>
+            <h3 className="font-black text-zinc-300 text-sm uppercase tracking-wider">Inventory Summary</h3>
             <button
               onClick={fetchProducts}
-              className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+              className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 font-bold"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-3 h-3" />
               Refresh
             </button>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-blue-600">{stats.total_products}</div>
-              <div className="text-sm text-gray-500">Products</div>
+            <div className="bg-zinc-950 rounded-xl p-4 text-center border border-zinc-800">
+              <div className="text-3xl font-black text-red-500 font-mono">{stats.total_products}</div>
+              <div className="text-xs text-zinc-600 uppercase tracking-wider mt-1">Products</div>
             </div>
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-green-600">
+            <div className="bg-zinc-950 rounded-xl p-4 text-center border border-zinc-800">
+              <div className="text-3xl font-black text-white font-mono">
                 ${stats.total_value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </div>
-              <div className="text-sm text-gray-500">Total Value</div>
+              <div className="text-xs text-zinc-600 uppercase tracking-wider mt-1">Total Value</div>
             </div>
-            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 text-center">
-              <div className="text-3xl font-bold text-amber-600">{stats.low_stock_count}</div>
-              <div className="text-sm text-gray-500">Low Stock</div>
+            <div className="bg-zinc-950 rounded-xl p-4 text-center border border-zinc-800">
+              <div className="text-3xl font-black text-amber-500 font-mono">{stats.low_stock_count}</div>
+              <div className="text-xs text-zinc-600 uppercase tracking-wider mt-1">Low Stock</div>
             </div>
           </div>
         </div>

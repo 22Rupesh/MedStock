@@ -12,36 +12,38 @@ function AppShell() {
   const [activeTab, setActiveTab] = useState<TabType>('upload');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <header className="bg-zinc-950 border-b border-zinc-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
+              <div className="w-11 h-11 bg-gradient-to-br from-red-600 to-red-800 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/50">
                 <Boxes className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">MedStock</h1>
-                <p className="text-xs text-gray-500">Inventory Sync Engine</p>
+                <h1 className="text-2xl font-black tracking-tight">MedStock</h1>
+                <p className="text-xs text-zinc-500">Inventory Sync Engine</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-600/50 rounded-full text-xs font-medium text-red-400">
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
               System Online
             </div>
           </div>
         </div>
       </header>
 
-      <nav className="bg-white border-b">
+      {/* Navigation */}
+      <nav className="bg-zinc-950 border-b border-zinc-800">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1">
             <button
               onClick={() => setActiveTab('upload')}
-              className={`flex items-center gap-2 px-4 py-3 font-medium transition-all border-b-2 ${
+              className={`flex items-center gap-2 px-5 py-4 font-bold text-sm transition-all border-b-2 ${
                 activeTab === 'upload'
-                  ? 'text-blue-600 border-blue-600'
-                  : 'text-gray-500 border-transparent hover:text-gray-700'
+                  ? 'text-red-500 border-red-500'
+                  : 'text-zinc-500 border-transparent hover:text-white'
               }`}
             >
               <Upload className="w-4 h-4" />
@@ -49,10 +51,10 @@ function AppShell() {
             </button>
             <button
               onClick={() => setActiveTab('catalog')}
-              className={`flex items-center gap-2 px-4 py-3 font-medium transition-all border-b-2 ${
+              className={`flex items-center gap-2 px-5 py-4 font-bold text-sm transition-all border-b-2 ${
                 activeTab === 'catalog'
-                  ? 'text-blue-600 border-blue-600'
-                  : 'text-gray-500 border-transparent hover:text-gray-700'
+                  ? 'text-red-500 border-red-500'
+                  : 'text-zinc-500 border-transparent hover:text-white'
               }`}
             >
               <Database className="w-4 h-4" />
@@ -62,6 +64,7 @@ function AppShell() {
         </div>
       </nav>
 
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {activeTab === 'upload' ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -72,6 +75,13 @@ function AppShell() {
           <ProductCatalog />
         )}
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-zinc-900 py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-4 text-center text-zinc-600 text-xs">
+          <p>MedStock © 2024 • Built with Go, Next.js & PostgreSQL</p>
+        </div>
+      </footer>
     </div>
   );
 }
