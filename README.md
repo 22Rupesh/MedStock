@@ -1,5 +1,7 @@
 # MedStock - Inventory Sync Engine
 
+**Live Demo:** https://med-stock-three.vercel.app/
+
 A production-grade B2B inventory synchronization engine for medical device suppliers, built with Go, PostgreSQL, Redis, and Next.js.
 
 ## Architecture
